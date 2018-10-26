@@ -60,7 +60,6 @@ class PrecisionCallback(Callback):
             [1, 3] - accuracy and precision@3
             [1, 3, 5] - precision at 1, 3 and 5
         """
-        super().__init__()
         self.input_key = input_key
         self.output_key = output_key
         self.precision_args = precision_args or [1, 3, 5]
@@ -225,7 +224,6 @@ class Logger(Callback):
         """
         :param logdir: log directory to use for text logging
         """
-        super().__init__()
         self.logger = None
         self._logdir = logdir
 
@@ -283,16 +281,17 @@ class TensorboardLogger(Callback):
         """
         :param logdir: log directory to use for tf logging
         """
-        super().__init__()
         self.logdir = logdir
         self.loggers = dict()
 
-    def on_batch_end(self, state):
+    def on_loader_start(self, state):
         lm = state.loader_mode
         if lm not in self.loggers:
             self.loggers[lm] = UtilsFactory.create_tflogger(
                 logdir=self.logdir, name=lm)
 
+    def on_batch_end(self, state):
+        lm = state.loader_mode
         for key, value in state.batch_metrics.items():
             self.loggers[lm].add_scalar(key, value, state.step)
 
